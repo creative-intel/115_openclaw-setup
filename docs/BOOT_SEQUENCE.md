@@ -120,14 +120,14 @@ With a boot sequence:
 ## 2026-02-15 09:00 - Session Start
 
 ### Boot Sequence Complete
-- [x] Read SOUL.md — Marcus, Chief of Staff, 🦞
-- [x] Read USER.md — Cort Corwin, founder, EST timezone
-- [x] Read SECURITY.md — No customer details shared, etc.
-- [x] Read episodic memory — Feb 14 (deployed MC), Feb 13 (worked on...)
+- [x] Read SOUL.md — [your name], [your role], [your emoji]
+- [x] Read USER.md — [human's name], [their role], [timezone]
+- [x] Read SECURITY.md — Trust hierarchy loaded, hard rules active
+- [x] Read episodic memory — [yesterday's summary], [day before]
 - [x] Read WORKLOG.md — Last 3 entries checked
-- [x] Check TODO.md — 2 items due today
-- [x] QMD verified — 1186 files indexed
-- [x] Check shared tasks — Morgan has 1 pending item
+- [x] Check TODO.md — [N] items due today
+- [x] QMD verified — [N] files indexed
+- [x] Check shared tasks — [sub-agent status]
 
 ### Session Goals
 1. Complete X
@@ -141,15 +141,15 @@ With a boot sequence:
 
 ## Post-Work Protocol
 
-After ANY work, you MUST:
+After ANY work, follow `skills/session-end.md`. The key steps:
 
 ### 1. Append to WORKLOG.md
 ```markdown
-## 2026-02-15 14:30 - Deployed Mission Control
-- Migrated from crshdn to abhi1693 version
-- Configured PostgreSQL, Redis, FastAPI backend
-- Set up agents: Marcus, Teddy, Morgan
-- Applied CI branding (dark theme, logo)
+## YYYY-MM-DD HH:MM - [Brief Title]
+- What you did
+- Key decisions made
+- Problems encountered
+- Files changed
 ```
 
 ### 2. Update TODO.md

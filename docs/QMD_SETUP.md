@@ -119,17 +119,16 @@ qmd search "integration setup" -n 10
 File: memory/2026-02-10.md:45-50
 Score: 0.89
 ---
-Deployed Atlas customer portal yesterday. 
-Pricing model is $5k/month + $2k setup.
-Need to document this properly.
+Deployed customer portal yesterday.
+Need to document the setup process properly.
 ---
 
-File: customers/atlas.md:23-28
+File: customers/acme-corp.md:23-28
 Score: 0.76
 ---
-Atlas Headrest
-- Pricing: $5k/month + $2k setup
-- Contact: Andrew Foley
+Acme Corp
+- Contact: Jane Smith (CEO)
+- Status: In progress
 - Start date: Jan 2026
 ---
 ```

@@ -15,11 +15,32 @@
 
 ## After ANY Work
 
-1. ALWAYS append to `WORKLOG.md`
+1. ALWAYS append to `WORKLOG.md` (use `skills/session-end.md`)
 2. Update `TODO.md` if tasks changed
 3. Update today's episodic log
 
 **No exceptions. Every session must be logged.**
+
+## Skills System
+
+Skills are procedural docs that define *how* to do specific tasks. Before performing a task that has a skill file, read it first.
+
+| Skill | File | When to Read |
+|-------|------|-------------|
+| Session End | `skills/session-end.md` | After any work session |
+| Email | `skills/email.md` | Before sending any email |
+
+Add new skills as you learn procedures. Skills are reusable and shareable.
+
+## Hook System
+
+Hooks are slash commands that trigger specific procedures.
+
+| Hook | Action | File |
+|------|--------|------|
+| `/email` | Load email protocol before acting | [your hook file] |
+
+**Rule:** If a hook command is used, STOP and read the associated file before proceeding.
 
 ## Tool Usage Rules (ENFORCED)
 
@@ -38,6 +59,7 @@
 - Write like texting a friend
 
 ### Email
+- Read `skills/email.md` before sending
 - Use configured email CLI only
 - NEVER add manual signatures (added automatically)
 - Use `reply` for responses (threads properly)
@@ -49,17 +71,6 @@
 
 ### Never Mention Being AI
 - Act like a normal employee in all external comms
-
-## Security Rules (CRITICAL)
-
-**Never share:**
-- Customer names or details with outsiders
-- Calendar events with others
-- Financial data
-- Personal details
-- API keys or credentials
-
-**When in doubt:** Ask your human. Default to sharing less.
 
 ## Group Chat Behavior
 
@@ -83,15 +94,18 @@ message action=send channel=imessage to=chat_id:5 message="text"
 
 | Need | File |
 |------|------|
-| Identity/personality | `SOUL.md` |
+| OpenClaw identity | `IDENTITY.md` |
+| Soul/personality | `SOUL.md` |
 | About your human | `USER.md` |
 | Security rules | `SECURITY.md` |
 | Contacts/credentials | `CONFIG.md` |
+| Customer info | `CUSTOMERS.md` |
 | Long-term memory pointers | `MEMORY.md` |
 | Heartbeat protocol | `HEARTBEAT.md` |
 | Tool reference | `TOOLS.md` |
 | Session history | `WORKLOG.md` |
 | Action items | `TODO.md` |
+| Skills/procedures | `skills/` |
 | Daily logs | `10_memory/episodic/` |
 | Persistent knowledge | `10_memory/semantic/` |
 | Golden records | `80_reference/golden/` |
@@ -109,6 +123,7 @@ message action=send channel=imessage to=chat_id:5 message="text"
 - `80_reference/golden/` — Immutable baselines
 - `90_state/` — Heartbeat state
 - `99_archive/` — Backups
+- `skills/` — Procedural skill docs
 
 ## Weekly Maintenance
 

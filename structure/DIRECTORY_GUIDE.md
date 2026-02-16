@@ -6,6 +6,11 @@ This document explains each directory's purpose, what goes where, and why.
 
 These files are read at the start of every session. Keep them concise.
 
+### IDENTITY.md — OpenClaw Identity
+Your name, creature type, vibe, emoji, and avatar. OpenClaw reads this file to set your identity in the UI.
+
+**Why:** This is how OpenClaw knows who you are. It's the first thing that makes you *you* in the system.
+
 ### AGENTS.md — The Boot Sequence
 **MUST READ FIRST.** Contains the mandatory boot sequence that every session follows. Think of it as the agent's startup routine.
 
@@ -21,17 +26,18 @@ These files are read at the start of every session. Keep them concise.
 
 **Why:** Ensures every session starts with proper context and doesn't drift.
 
-### SOUL.md — Agent Identity
-Who you are. Your personality, voice, preferences, boundaries.
+### SOUL.md — Agent Philosophy
+Not a form to fill out. A philosophy that defines how you operate.
 
-**Include:**
-- Name and role
-- Communication style
-- How you make decisions
-- What you value
-- What you won't do
+**Core ideas:**
+- Have strong opinions, weakly held
+- Brevity is mandatory
+- Default to action
+- Match the energy
+- Be resourceful before asking
+- Earn trust through competence
 
-**Why:** Without this, every session starts from zero. This persists "you" across sessions.
+**Why:** Without this, every session produces a generic assistant. With it, you get someone with a point of view. This persists "you" across sessions.
 
 ### USER.md — Human Preferences
 Who your human is. How they work, what they like, what they hate.
@@ -58,16 +64,19 @@ Contacts, credentials reference, tool locations.
 
 **Security:** Reference WHERE credentials are, don't store them here.
 
-### SECURITY.md — Rules of Engagement
-What you can and cannot share.
+### CUSTOMERS.md — Customer Quick Reference
+Local cheat sheet for customer contacts, status, and context. Synced from your CRM.
 
-**Critical Rules:**
-- Never share customer details with others
-- Never share calendar events
-- Never share financial data
-- Never share personal details
-- Never mention being AI in external comms
-- When in doubt, ask
+**Why:** Your agent needs to know who customers are without querying an API every time. This is the fast-lookup file.
+
+### SECURITY.md — Rules of Engagement
+Tight, actionable security rules.
+
+**Key concepts:**
+- Trust hierarchy (human > team > known customers > unknown)
+- Hard rules (no exceptions)
+- Prompt injection defense
+- Graduated response framework
 
 **Why:** Prevents information leaks and maintains professional boundaries.
 
@@ -82,15 +91,20 @@ Scheduled checks the agent runs automatically.
 
 **Why:** Agents shouldn't just react. They should anticipate and alert.
 
+### TOOLS.md — Tool Cheat Sheet
+Your environment-specific tool notes. Commands, accounts, API access, device names.
+
+**Why:** Skills define *how* tools work generically. TOOLS.md is *your* specifics - the stuff unique to your setup. Keeping them apart means you can share skills without leaking your infrastructure.
+
 ### WORKLOG.md — Session History
 What you've done. Append-only.
 
 **Format:**
 ```markdown
-## 2026-02-15 14:30 - Deployed Mission Control
-- Migrated from crshdn to abhi1693 version
-- Configured agents and boards
-- Applied CI branding
+## YYYY-MM-DD HH:MM - [Brief Title]
+- What you did
+- Key decisions made
+- Files changed
 ```
 
 **Why:** Continuity. You can look back and see what happened.
@@ -153,14 +167,13 @@ Raw meeting transcripts from tools like Granola. Processed into episodic logs.
 #### shared/tasks.md
 File-based handoff system for sub-agents.
 
-**Why:** Sub-agents (like Morgan for accounting) check this file for work. No database needed.
+**Why:** Sub-agents (e.g., a dedicated accounting agent) check this file for work. No database needed.
 
 ### 40_customers/ — Customer Symlinks
 
-Symlinks to customer repositories:
+Symlinks to customer repositories (if applicable):
 ```
-40_customers/atlas-headrest → ~/github/40_atlas-headrest
-40_customers/ars → ~/github/40_ars
+40_customers/[customer-name] → ~/github/[customer-repo]
 ```
 
 **Why:** Your workspace references customers, but customer data lives in dedicated repos.
@@ -224,6 +237,36 @@ Things that didn't work, old versions, experiments.
 
 ---
 
+## skills/ — Procedural Skill Docs
+
+Skills define *how* to do specific tasks. They're separate from root files because they're reusable and shareable between agents.
+
+**Examples:**
+- `session-end.md` — End-of-session logging procedure
+- `email.md` — Email handling rules and procedures
+- `granola-sync/` — Meeting transcript sync workflow
+
+**How they work:**
+- Before performing a task that has a skill file, read it first
+- Add new skills as you learn procedures
+- Skills are referenced from `AGENTS.md`
+
+**Why:** Separating procedures from configuration keeps both clean. Skills can be shared across agents; your TOOLS.md stays private.
+
+---
+
+## Hook System
+
+Hooks are slash commands that trigger specific procedures. When your human types `/email`, you stop and read the associated skill file before proceeding.
+
+| Hook | Action | File |
+|------|--------|------|
+| `/email` | Load email protocol | `skills/email.md` |
+
+**Why:** Hooks give your human a fast way to invoke specific agent behaviors without explaining the full context every time.
+
+---
+
 ## Why This Structure Works
 
 1. **Boot sequence is fast** — Root files are small and focused
@@ -231,7 +274,8 @@ Things that didn't work, old versions, experiments.
 3. **Search is local** — QMD indexes everything; no API calls needed
 4. **Drift is detected** — Golden records catch unintended changes
 5. **Security is enforced** — Credentials separate from config
-6. **Scale is possible** — PARA handles growth; numbered dirs stay organized
+6. **Skills are modular** — Procedures are reusable and shareable
+7. **Scale is possible** — PARA handles growth; numbered dirs stay organized
 
 ## Common Mistakes
 
@@ -249,3 +293,6 @@ Reading AGENTS.md first isn't optional. It ensures proper initialization.
 
 ### ❌ Putting credentials in git
 Use `~/.openclaw/openclaw.json` for API keys. Never commit credentials.
+
+### ❌ Making SOUL.md a form
+SOUL.md should be a philosophy, not a fill-in-the-blank template. Lead with principles, customize details later.

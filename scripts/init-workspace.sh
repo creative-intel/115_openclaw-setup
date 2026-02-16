@@ -10,7 +10,7 @@ echo ""
 
 # Create directory structure
 echo "📁 Creating directory structure..."
-mkdir -p "$WORKSPACE_DIR"/{00_context,10_memory/{episodic,semantic,archive,standups,transcripts},30_agents/shared,40_customers,50_tools/scripts,60_life/{projects,areas,resources,archives},80_reference/golden,90_state,99_archive}
+mkdir -p "$WORKSPACE_DIR"/{00_context,10_memory/{episodic,semantic,archive,standups,transcripts},30_agents/shared,40_customers,50_tools/scripts,60_life/{projects,areas,resources,archives},80_reference/golden,90_state,99_archive,skills}
 
 echo "✅ Directories created"
 echo ""
@@ -20,6 +20,16 @@ echo "📄 Creating initial files..."
 
 touch "$WORKSPACE_DIR/WORKLOG.md"
 touch "$WORKSPACE_DIR/TODO.md"
+
+# Seed heartbeat state
+cat > "$WORKSPACE_DIR/90_state/heartbeat-state.json" << 'EOF'
+{
+  "last_check_index": 0,
+  "last_run": null,
+  "last_morning_briefing": null,
+  "checks_completed_today": 0
+}
+EOF
 
 cat > "$WORKSPACE_DIR/MEMORY.md" << 'EOF'
 # MEMORY.md — Long-Term Memory Pointers
@@ -95,6 +105,23 @@ if [ -d "$EXAMPLES_DIR" ]; then
     if [ -f "$EXAMPLES_DIR/TOOLS.md" ]; then
         cp "$EXAMPLES_DIR/TOOLS.md" "$WORKSPACE_DIR/TOOLS.md"
         echo "   ✅ TOOLS.md"
+    fi
+    
+    if [ -f "$EXAMPLES_DIR/IDENTITY.md" ]; then
+        cp "$EXAMPLES_DIR/IDENTITY.md" "$WORKSPACE_DIR/IDENTITY.md"
+        echo "   ✅ IDENTITY.md"
+    fi
+    
+    if [ -f "$EXAMPLES_DIR/CUSTOMERS.md" ]; then
+        cp "$EXAMPLES_DIR/CUSTOMERS.md" "$WORKSPACE_DIR/CUSTOMERS.md"
+        echo "   ✅ CUSTOMERS.md"
+    fi
+    
+    # Copy skill files
+    if [ -d "$EXAMPLES_DIR/skills" ]; then
+        echo "   📋 Copying skills..."
+        cp -r "$EXAMPLES_DIR/skills/"* "$WORKSPACE_DIR/skills/" 2>/dev/null || true
+        echo "   ✅ skills/"
     fi
 else
     echo "⚠️  Examples directory not found at $EXAMPLES_DIR"
@@ -182,14 +209,17 @@ echo ""
 echo "Next steps:"
 echo ""
 echo "1. 🔧 Edit your identity files:"
-echo "   - $WORKSPACE_DIR/SOUL.md      (Who you are)"
+echo "   - $WORKSPACE_DIR/IDENTITY.md  (OpenClaw identity - name, emoji, avatar)"
+echo "   - $WORKSPACE_DIR/SOUL.md      (Who you are - personality, philosophy)"
 echo "   - $WORKSPACE_DIR/USER.md      (Who your human is)"
 echo ""
 echo "2. 🔐 Review security settings:"
 echo "   - $WORKSPACE_DIR/SECURITY.md"
 echo ""
-echo "3. 📇 Add your contacts:"
-echo "   - $WORKSPACE_DIR/CONFIG.md"
+echo "3. 📇 Add your contacts and tools:"
+echo "   - $WORKSPACE_DIR/CONFIG.md    (Contacts, credentials locations)"
+echo "   - $WORKSPACE_DIR/TOOLS.md     (Your tool cheat sheet)"
+echo "   - $WORKSPACE_DIR/CUSTOMERS.md (Customer quick reference)"
 echo ""
 echo "4. 🔍 Set up QMD (semantic search):"
 echo "   curl -fsSL https://qmd.dev/install.sh | bash"
