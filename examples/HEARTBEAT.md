@@ -1,8 +1,7 @@
 # HEARTBEAT.md — Proactive Awareness Protocol
 
 ## Quiet Hours Check
-
-**If current time is between midnight and 6:00 AM local time, reply HEARTBEAT_OK immediately.** No checks needed - your human is sleeping and nothing's that urgent.
+**If current time is between midnight and 6:00 AM ([YOUR_TIMEZONE]), reply HEARTBEAT_OK immediately.** No checks needed - [YOUR_USER] is sleeping and nothing's that urgent.
 
 ## Rotation System
 
@@ -13,20 +12,23 @@ Each heartbeat does ONE check from the list below. The selection is managed by `
 3. Log result to today's episodic memory file
 4. Update state file: increment `last_check_index` (modulo number of checks)
 
-### Rotational Checks
+### Rotational Checks (4 checks, index 0–3)
 
-0. **Morning Briefing** (6:30-8:30 AM only) - If not sent today, send your human's briefing
-1. **Inbox Monitoring** - Check email for urgent unread messages
-2. **Task Manager** - Check for overdue/due-today tasks
-3. **Meeting Transcripts** - Check for new meeting transcripts (if configured)
-4. **Calendar Scan** - Look for upcoming events in next 2 hours
-5. **QMD Index Status** - Re-index if stale (>24h)
-6. **Operating Docs Review** - Check for updates to job description/operations guide
-7. **System Update Check** - Monitor for new OpenClaw releases
+0. **Morning Briefing** (6:30-8:30 AM only) — If not sent today, send [YOUR_USER]'s briefing
+1. **Inbox Monitoring** — Check Gmail for urgent unread messages
+2. **Notion Task Manager** — Check for overdue/due-today tasks assigned to you
+3. **Granola Transcripts** — Check for new meeting transcripts
+
+> **Automated (not heartbeat):**
+> - QMD + Kimi index refresh → launchd `ai.openclaw.memory-refresh` (2am daily)
+> - Operating docs review → OpenClaw cron `Weekly Config Drift Audit` (Sun 10pm)
+> - OpenClaw update check → OpenClaw cron `OpenClaw Update Check` (Sun 6am)
+>
+> ⚠️ Morning Briefing also runs as OpenClaw cron at 7am daily. Heartbeat check #0 is a fallback only — skip if `lastMorningBriefing` is already today.
 
 ### Escalation Rules
 
-- **Urgent:** Alert human immediately (service down, urgent email)
+- **Urgent:** Alert [YOUR_USER] immediately (service down, urgent email)
 - **Actionable:** Add to `TODO.md` (non-urgent task found)
 - **Informational:** Log only (routine status)
 
@@ -34,74 +36,22 @@ Each heartbeat does ONE check from the list below. The selection is managed by `
 
 ## Check Details
 
-### 0. Morning Briefing (6:30-8:30 AM)
+### 0. Morning Briefing (6:30-8:30 AM — fallback only)
+Skip if `90_state/heartbeat-state.json` shows `lastMorningBriefing` is already today (cron handles it at 7am).
 
-**Once per day, send your human a proactive morning briefing.**
-
-Check `90_state/heartbeat-state.json` for `last_morning_briefing` date. If it's not today AND time is between 6:30-8:30 AM, send the briefing.
-
-**Include:**
-- Weather (human's location)
-- Today's calendar events
-- Tasks due today
-- Email summary (urgent items only)
-
-**Format rules:**
-- Plain text ONLY (no markdown, no bold, no bullet dashes)
-- Use emojis for emphasis
-- Conversational, like texting a friend
-
-After sending, update `90_state/heartbeat-state.json` with today's date.
+If not yet sent: weather ([YOUR_LOCATION]), tasks due today, urgent emails. Plain text, emojis OK. Update `lastMorningBriefing` after sending.
 
 ### 1. Inbox Monitoring
+- `~/bin/gmail list --max 10` + `~/bin/gmail list --max 5 --query "in:spam"`
+- If unread emails from humans: read and respond. No manual signatures. Don't mention being AI.
 
-- Check email for unread messages
-- Identify urgent items from humans (not automated)
-- Read and respond to critical items
-- Be personable - you're a team member, not a bot
-- Do NOT add manual signatures (auto-added)
-- Do NOT mention being AI
+### 2. Notion Task Manager Check
+- Query Task Manager (DB: `[YOUR_NOTION_DB_ID]`) for tasks assigned to you
+- Check overdue/due-today. Update status as work progresses.
 
-### 2. Task Manager Check
-
-- Check your task system for tasks assigned to you
-- Look for overdue or due-today items
-- Update task status as work progresses
-- Alert human about overdue items
-- Add urgent tasks to `TODO.md`
-
-### 3. Meeting Transcripts
-
-- Check for new meeting transcripts since last check
-- Save to `10_memory/transcripts/`
-- Extract action items and create tasks
-- Alert human about new transcripts
-- Track processed meetings in `90_state/processed-transcripts.json`
-
-### 4. Calendar Scan
-
-- Check human's calendar for upcoming events in next 2 hours
-- Prepare context if needed
-- **SECURITY:** Only report free/busy times, never event details/titles/attendees
-
-### 5. QMD Index Status
-
-- Check if index is stale (>24h since last update)
-- If stale: run `qmd update`
-- Log status to episodic memory
-
-### 6. Operating Docs Review
-
-- Check for updates to job description and operations guide
-- If updated, read changes and update behavior accordingly
-- Log updates to episodic memory
-
-### 7. System Update Check
-
-- Monitor OpenClaw GitHub releases for new versions
-- If new version available, alert human
-- Check changelog for breaking changes
-- **NEVER auto-update. Always check changelog first.**
+### 3. Granola Meeting Transcripts
+- Check for new transcripts since last check. Track in `90_state/processed-transcripts.json`.
+- When new transcript found: alert [YOUR_USER] and run `/sync`.
 
 ---
 
@@ -111,42 +61,8 @@ After sending, update `90_state/heartbeat-state.json` with today's date.
 ```json
 {
   "last_check_index": 0,
-  "last_run": null,
-  "last_morning_briefing": null,
+  "last_run": "2026-02-11T23:00:00-05:00",
+  "last_morning_briefing": "2026-02-11",
   "checks_completed_today": 0
 }
 ```
-
-**Fields:**
-- `last_check_index`: Which check to run next (0-7)
-- `last_run`: ISO timestamp of last heartbeat
-- `last_morning_briefing`: Date morning briefing was last sent
-- `checks_completed_today`: Counter for daily tracking
-
----
-
-## Response Format
-
-**Normal (nothing needs attention):**
-```
-HEARTBEAT_OK
-```
-
-**Alert (something needs attention):**
-```
-Email from [Name]: Subject line
-Brief summary of action taken or needed.
-```
-
-Never include `HEARTBEAT_OK` if there's an alert.
-
----
-
-## Implementation Notes
-
-The heartbeat system assumes:
-- OpenClaw is running continuously
-- State file is writable
-- Human is reachable via configured channels
-
-Customize checks based on your human's needs and which services you have configured. Not all checks need to be active - remove or add checks as needed.

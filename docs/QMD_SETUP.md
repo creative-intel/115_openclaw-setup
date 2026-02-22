@@ -410,3 +410,48 @@ You should see significant reduction in API token consumption.
 | Maintenance | Weekly updates | None |
 
 **Recommendation:** Use QMD for everything. Use memory_search only as fallback if QMD fails.
+
+---
+
+## Critical: Use qmd-guard.sh, Not Raw qmd update
+
+**Do not run `qmd update` directly.** It fails silently on SQLite UNIQUE constraint errors and there's no retry logic.
+
+Instead, use the guard script:
+
+```bash
+~/clawd/50_tools/qmd-guard.sh both    # update + embed
+~/clawd/50_tools/qmd-guard.sh update  # update only  
+~/clawd/50_tools/qmd-guard.sh embed   # embed only
+```
+
+The guard script:
+- Retries 3 times with exponential backoff (30s → 60s → 120s)
+- Classifies errors: rate limit vs SQLite constraint vs missing path
+- Logs failures to `90_state/qmd-guard.log`
+- Exits with code 1 on failure so callers can detect it
+
+Copy `scripts/qmd-guard.sh` from this repo into your `50_tools/` directory.
+
+## Known Failure Modes
+
+### SQLite UNIQUE constraint error
+**Symptom:** `qmd update` fails with `SQLiteError: UNIQUE constraint failed: documents.collection, documents.path`
+**Fix:** Run `qmd cleanup` first, then retry
+
+### Ghost collections
+**Symptom:** `qmd update` fails with `ENOENT` on a collection path
+**Diagnosis:** `qmd collection list` — look for collections pointing to non-existent paths
+**Fix:** `qmd collection remove <name>`
+
+### Lite agent index is empty
+**Symptom:** Sub-agents run without memory retrieval capability (no errors, just degraded output)
+**Diagnosis:** `openclaw memory status --agent lite`
+**Fix:** `openclaw memory index --agent lite`
+**Prevention:** Include this in your nightly refresh script
+
+## Nightly Refresh via launchd
+
+Don't run QMD refresh as a heartbeat check — it's mechanical, costs nothing as a shell script, and should run at a fixed time regardless of whether the agent is active.
+
+See `scripts/memory-refresh.sh` and `scripts/ai.openclaw.memory-refresh.plist` for a ready-to-use launchd setup.
