@@ -1,3 +1,5 @@
+<!-- ⚠️ SYNC REMINDER: When editing this file, update the Notion page too → https://www.notion.so/creative-intelligence-ai/Marcus-Architecture-Maps-307d48b650c081828bb4f36fbfd38908 -->
+
 # Sub-Agent Coordination — Primary ↔ Sub-Agent
 
 ```
