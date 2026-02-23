@@ -33,9 +33,9 @@
 ║  │                          "Who am I helping?" — loaded in boot step 1.                      ║
 ║  │                                                                                            ║
 ║  ├── HEARTBEAT.md ───────── ✅ Proactive check protocol. 7 rotational checks.                  ║
-║  │                          Runs every 15 min. Drives the heartbeat feature.                  ║
+║  │                          Runs every 30 min. Drives the heartbeat feature.                  ║
 ║  │                                                                                            ║
-║  ├── skills/ ────────────── ✅ OpenClaw auto-discovers this. Lowercase at root.                 ║
+║  ├── skills/ ────────────── ✅ OpenClaw auto-discovers this. Lowercase ONLY (skills/ NOT Skills/)║
 ║  │   │                      Each skill = a procedure your agent can execute.                  ║
 ║  │   │                      Files with user-invocable: true become slash commands.             ║
 ║  │   │                                                                                        ║
@@ -111,7 +111,11 @@
 ║  │                                                                                            ║
 ║  ├── 50_tools/ ──────────── ⚠️ Scripts, automation, projects                                   ║
 ║  │   ├── scripts/                                                                             ║
-║  │   │   └── weekly-audit.sh   (cron job: diff golden vs live)                                ║
+║  │   │   ├── weekly-audit.sh   (cron job: diff golden vs live)                                ║
+║  │   │   ├── qmd-guard.sh      (QMD index update with retry/backoff)                          ║
+║  │   │   ├── memory-refresh.sh (memory system maintenance)                                    ║
+║  │   │   ├── session-end.sh    (session logging wrapper)                                      ║
+║  │   │   └── health-check.sh   (system health verification)                                   ║
 ║  │   └── dashboard/            (optional web dashboard)                                       ║
 ║  │                                                                                            ║
 ║  ├── 60_life/ ───────────── 📎 PARA knowledge graph                                            ║
@@ -128,9 +132,11 @@
 ║  │       ├── TOOLS.md        (known-good version)                                             ║
 ║  │       └── CONFIG.md       (known-good version)                                             ║
 ║  │                                                                                            ║
-║  ├── 90_state/ ──────────── ✅ Runtime state files (JSON, not for humans)                       ║
-║  │   ├── heartbeat-state.json     (rotation index, last run time)                             ║
-║  │   └── processed-transcripts.json (transcript pipeline tracking)                            ║
+║  ├── 90_state/ ──────────── ✅ Runtime state files (JSON/logs, not for humans)                  ║
+║  │   ├── heartbeat-state.json       (rotation index, last run time)                           ║
+║  │   ├── processed-transcripts.json (transcript pipeline tracking)                            ║
+║  │   ├── qmd-guard.log              (QMD index update log)                                    ║
+║  │   └── memory-refresh.log         (memory system refresh log)                               ║
 ║  │                                                                                            ║
 ║  └── 99_archive/ ────────── 📎 Old backups, experiments, deprecated files                      ║
 ║                                                                                               ║

@@ -10,13 +10,15 @@
 ║                                                                                           ║
 ║                                                                                           ║
 ║  ┌─────────────────────────────────────────────────────────────────────────────────────┐  ║
-║  │                            PRIMARY AGENT                                            │  ║
+║  │                            PRIMARY AGENT (Sonnet 4.6)                               │  ║
 ║  │                                                                                     │  ║
 ║  │  Workspace: ~/clawd/                                                                │  ║
 ║  │  Identity:  SOUL.md + USER.md                                                       │  ║
 ║  │  Config:    ~/.openclaw/openclaw.json                                               │  ║
+║  │  Model:     claude-sonnet-4-6 (main — judgment, writing, comms)                     │  ║
 ║  │                                                                                     │  ║
 ║  │  Responsibilities:                                                                  │  ║
+║  │  • Orchestration & judgment      • Tool access decisions                            │  ║
 ║  │  • Email management              • Customer comms                                   │  ║
 ║  │  • Calendar management           • Research                                         │  ║
 ║  │  • Task management               • Meeting transcript sync                         │  ║
@@ -106,6 +108,34 @@
 ║  │  Output Location: exports/  (shared, at workspace root)                             │  ║
 ║  │                                                                                     │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                           ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │                            LITE AGENT (Kimi K2.5)                                   │  ║
+║  │                                                                                     │  ║
+║  │  Model:     moonshot/kimi-k2.5 (lite — bulk execution, file ops)                    │  ║
+║  │  Spawned:   sessions_spawn(agentId="lite")                                          │  ║
+║  │  Memory:    openclaw memory index --agent lite (separate index)                     │  ║
+║  │                                                                                     │  ║
+║  │  Responsibilities:                                                                  │  ║
+║  │  • File operations (>20 files)       • Data transforms                              │  ║
+║  │  • Bulk script execution             • API batching                                 │  ║
+║  │  • Repetitive automation             • Large-scale processing                       │  ║
+║  │                                                                                     │  ║
+║  │  SPAWN RULE:                                                                        │  ║
+║  │  >20 file operations OR repetitive scripting → spawn to lite                        │  ║
+║  │                                                                                     │  ║
+║  │  Example: SubZero image processing (333 files, scripts, Drive upload)               │  ║
+║  │                                                                                     │  ║
+║  └────────────────────────────┬────────────────────────────────────────────────────────┘  ║
+║                               │                                                           ║
+║              ┌────────────────┼────────────────┐                                          ║
+║              │                │                │                                          ║
+║              ▼                ▼                ▼                                          ║
+║   ┌──────────────┐  ┌──────────────┐  ┌───────────────┐                                  ║
+║   │ Specialized  │  │ Specialized  │  │    LITE       │                                  ║
+║   │ (Morgan)     │  │   [future]   │  │   (Kimi)      │                                  ║
+║   │ Accounting   │  │              │  │ Bulk execution│                                  ║
+║   └──────────────┘  └──────────────┘  └───────────────┘                                  ║
 ║                                                                                           ║
 ║                                                                                           ║
 ║  ════════════════════════════════════════════════════════════════════════════════════════  ║

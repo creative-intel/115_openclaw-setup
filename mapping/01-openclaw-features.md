@@ -10,8 +10,10 @@
 ║   │                                                                                 │   ║
 ║   │   ~/.openclaw/openclaw.json ─── API keys, model configs, agent settings         │   ║
 ║   │                                                                                 │   ║
-║   │   Models:  claude-sonnet (main reasoning)                                       │   ║
-║   │            gpt-4o-mini (voice calls only, no tools)                             │   ║
+║   │   Models:  claude-sonnet-4-6 (main — judgment, writing, comms)                  │   ║
+║   │            anthropic/claude-haiku-4-5 (heartbeat + isolated cron — 4x cheaper)  │
+  │            moonshot/kimi-k2.5 (lite agent — bulk execution, file ops)           │
+  │            gpt-4o-mini (voice calls only, no tools)                             │   ║
 ║   │            embeddinggemma-300M (QMD vector search, local)                       │   ║
 ║   │            qwen3-reranker-0.6b (QMD reranking, local)                           │   ║
 ║   │            qmd-query-expansion-1.7B (QMD hybrid search, local)                  │   ║
@@ -30,8 +32,8 @@
 ║   ┌────────────────┐     ┌─────────────────────┐    ┌──────────────────────┐            ║
 ║   │ TRIGGER:        │     │ TRIGGER:             │    │ TRIGGER:             │            ║
 ║   │ User types      │     │ Gateway timer fires  │    │ System crontab runs  │            ║
-║   │ /status, /tell, │     │ every 15 min, reads  │    │ weekly-audit.sh      │            ║
-║   │ /focus, /audit  │     │ heartbeat-state.json │    │ on schedule          │            ║
+║   │ /status, /tell, │     │ every 30 min, reads  │    │ weekly-audit.sh      │            ║
+║   │ /health, /audit │     │ heartbeat-state.json │    │ on schedule          │            ║
 ║   │ /deep, /catchup │     │ to pick next check   │    │                      │            ║
 ║   │ etc.            │     │                      │    │                      │            ║
 ║   └───────┬────────┘     └──────────┬──────────┘    └──────────┬───────────┘            ║
@@ -118,5 +120,5 @@
 | Feature | How It Works | Key Files |
 |---------|-------------|-----------|
 | Hook commands | User types `/command`, Gateway reads matching skill file, executes procedure | `skills/*.md` |
-| Heartbeat | Timer fires every 15 min, reads `heartbeat-state.json`, runs next check in rotation | `HEARTBEAT.md`, `90_state/heartbeat-state.json` |
+| Heartbeat | Timer fires every 30 min, reads `heartbeat-state.json`, runs next check in rotation | `HEARTBEAT.md`, `90_state/heartbeat-state.json` |
 | Weekly audit | Cron job runs `weekly-audit.sh`, diffs golden/ vs live root files, reports drift | `80_reference/golden/`, `50_tools/scripts/weekly-audit.sh` |
