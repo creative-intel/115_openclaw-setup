@@ -22,17 +22,49 @@ cd 115_openclaw-setup
 ./scripts/init-workspace.sh ~/clawd
 ```
 
-Then follow `setup/step-by-step.md` for full configuration.
+Then follow [`docs/SETUP_GUIDE.md`](docs/SETUP_GUIDE.md) for full configuration.
 
 ## Directory Layout
 
 | Directory | Purpose |
 |-----------|---------|
-| `setup/` | Step-by-step installation guides |
 | `docs/` | Concept documentation |
 | `scripts/` | Ready-to-use automation scripts |
 | `examples/` | Sample config files (copy these to your workspace) |
-| `research/` | Background reading |
+
+## Documentation Index
+
+### Getting Started
+| Doc | Purpose |
+|-----|---------|
+| [`SETUP_GUIDE.md`](docs/SETUP_GUIDE.md) | **Start here** — Complete from-zero setup checklist |
+
+### Core Concepts
+| Doc | Purpose |
+|-----|---------|
+| [`BOOT_SEQUENCE.md`](docs/BOOT_SEQUENCE.md) | AGENTS.md brevity principle — why shorter is better |
+| [`SKILLS.md`](docs/SKILLS.md) | Three skill categories and when to use each |
+| [`SLASH_COMMANDS.md`](docs/SLASH_COMMANDS.md) | Building `/health` and other slash commands |
+
+### Configuration
+| Doc | Purpose |
+|-----|---------|
+| [`MESSAGING.md`](docs/MESSAGING.md) | iMessage + Telegram setup and routing |
+| [`QMD_SETUP.md`](docs/QMD_SETUP.md) | Semantic search configuration and guard scripts |
+| [`MULTI_AGENT.md`](docs/MULTI_AGENT.md) | Lite agent setup and index management |
+
+### Operations
+| Doc | Purpose |
+|-----|---------|
+| [`AUTOMATION.md`](docs/AUTOMATION.md) | launchd vs cron vs heartbeat decision guide |
+| [`HEARTBEAT.md`](examples/HEARTBEAT.md) | Example proactive monitoring protocol |
+| [`COST_MANAGEMENT.md`](docs/COST_MANAGEMENT.md) | Model routing and Haiku configuration |
+
+### Production Hardening
+| Doc | Purpose |
+|-----|---------|
+| [`REAL_FAILURES.md`](docs/REAL_FAILURES.md) | 7 actual production failures + fixes |
+| [`DRIFT_PROTECTION.md`](docs/DRIFT_PROTECTION.md) | Preventing configuration drift |
 
 ## Core Stack (as of Feb 2026)
 
@@ -48,7 +80,7 @@ Then follow `setup/step-by-step.md` for full configuration.
 
 ## Key Lessons Learned
 
-See `docs/REAL_FAILURES.md` for actual production failures and what fixed them.
+See [`docs/REAL_FAILURES.md`](docs/REAL_FAILURES.md) for actual production failures and what fixed them.
 
 **The biggest ones:**
 - Run heartbeats on Haiku, not Sonnet — 4x cheaper, same quality for monitoring
