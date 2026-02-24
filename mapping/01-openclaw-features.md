@@ -124,3 +124,16 @@
 | Hook commands | User types `/command`, Gateway reads matching skill file, executes procedure | `skills/*.md` |
 | Heartbeat | Timer fires every 30 min, reads `heartbeat-state.json`, runs next check in rotation | `HEARTBEAT.md`, `90_state/heartbeat-state.json` |
 | Weekly audit | Cron job runs `weekly-audit.sh`, diffs golden/ vs live root files, reports drift | `80_reference/golden/`, `50_tools/scripts/weekly-audit.sh` |
+
+---
+
+## ⚙️ Config Changes — 2026-02-23
+
+| Setting | Key | Old | New | Why |
+|---|---|---|---|---|
+| Thinking level | `agents.defaults.thinkingDefault` | `low` | `medium` | Force deliberation before responding; prevent blurting |
+| Memory search | `tools.deny` | (not set) | `["memory_search"]` | Enforce QMD usage; memory_search was being used instead |
+| Compaction threshold | `compaction.memoryFlush.softThresholdTokens` | `40000` | `120000` | Fire memory flush at ~80k context instead of ~160k |
+
+### ⚠️ Important: Medium Thinking
+`thinkingDefault: medium` means every response now includes a hidden thinking pass before replying. This makes Marcus **slower but significantly more reliable** — he will verify claims before making them rather than blurting the first thing that comes to mind. Thinking blocks are hidden by default (not shown in chat). Cost impact is minimal (~$0.005/response).

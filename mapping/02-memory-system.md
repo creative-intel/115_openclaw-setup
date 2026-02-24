@@ -149,3 +149,20 @@
 3. **Summarize** → Session work logged to **WORKLOG + TODO** (continuity)
 4. **Retrieve** → QMD searches across all tiers; boot sequence loads recent context
 5. **Archive** → Old episodic logs grouped by month, one-offs go to `10_memory/archive/`
+
+---
+
+## ⚙️ Memory System Changes — 2026-02-23
+
+### SuperMemory — RETIRED
+SuperMemory (api.supermemory.ai) has been retired. It was redundant — QMD already indexes the full workspace including CUSTOMERS.md, 60_life/, and all semantic memory files. SuperMemory had 12 documents added Feb 2026 but was never reliably queried.
+
+- References removed from `AGENTS.md` and `80_reference/golden/agents.md`
+- `SUPERMEMORY_API_KEY` still in env but service no longer used
+- **Single search tool going forward: QMD only**
+
+### memory_search — BLOCKED
+`memory_search` tool is now blocked via `tools.deny: ["memory_search"]` in `~/.openclaw/openclaw.json`. Marcus can no longer call it. Forces QMD usage.
+
+- `memory_get` still available for reading specific files by path
+- `memorySearch.enabled` left as `true` — OpenClaw's internal session memory pipeline untouched
