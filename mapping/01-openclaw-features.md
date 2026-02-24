@@ -137,3 +137,15 @@
 
 ### ⚠️ Important: Medium Thinking
 `thinkingDefault: medium` means every response now includes a hidden thinking pass before replying. This makes Marcus **slower but significantly more reliable** — he will verify claims before making them rather than blurting the first thing that comes to mind. Thinking blocks are hidden by default (not shown in chat). Cost impact is minimal (~$0.005/response).
+
+### ⚠️ Important: Compaction Threshold
+OpenClaw's context window is 200k tokens. The `softThresholdTokens` setting controls when a memory flush (compaction) fires:
+
+**Formula:** `compaction fires when context > (contextWindow - softThresholdTokens)`
+
+| Value | Fires at | Problem |
+|---|---|---|
+| Old: `40000` | ~160k context | Too late — context nearly full, expensive cache writes already done |
+| New: `120000` | ~80k context | Earlier — compacts before costs compound |
+
+Compaction summarizes the session into a compressed memory block and resets the context window. Setting it earlier keeps sessions cheaper and prevents the context from maxing out (which kills compaction entirely — if you hit 200k, there's nothing left to compact into).
