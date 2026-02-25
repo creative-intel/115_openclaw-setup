@@ -22,6 +22,9 @@
 ║  │  ~/.bun/bin/qmd ────────────────── QMD executable (Bun runtime)                        │ ║
 ║  │  ~/.cache/qmd/models/ ──────────── QMD local AI models (~2GB)                          │ ║
 ║  │  ~/.zshrc ──────────────────────── Environment variables (API keys as env vars)        │ ║
+║  │  [project]/.env (gitignored) ───── Project/script-specific keys, plaintext local       │ ║
+║  │  30_agents/morgan/.env (gitignored) Morgan accounting keys (Mercury, QBO, etc.)        │ ║
+║  │  ⚠️ macOS Keychain NOT used — abandoned Feb 2026, failed intermittently                 │ ║
 ║  │                                                                                         │ ║
 ║  └─────────────────────────────────────────────────────────────────────────────────────────┘ ║
 ║                                                                                              ║
@@ -149,8 +152,14 @@
 
 ## Key Principle
 
-Credentials live OUTSIDE the workspace (`~/.config/`, `~/.openclaw/`, env vars). The workspace only references WHERE they are, never stores the actual keys. This means:
+Credentials live OUTSIDE the workspace (`~/.config/`, `~/.openclaw/`, env vars, gitignored `.env` files). The workspace only references WHERE they are, never stores the actual keys. This means:
 
 - Git commits never contain secrets
 - Workspace rebuilds don't lose credentials
 - Multiple agents can share credential paths
+
+**Storage hierarchy (as of Feb 2026):**
+1. OpenClaw keys → `~/.openclaw/openclaw.json` (never in workspace)
+2. General API keys → `~/.zshrc` as env vars
+3. Project/script keys → local gitignored `.env` file
+4. macOS Keychain → NOT used (abandoned, failed intermittently)
