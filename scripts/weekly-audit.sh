@@ -1,161 +1,205 @@
-#!/bin/bash
-# weekly-audit.sh
-# Weekly drift detection audit
-# Run this weekly to detect configuration drift
+#!/usr/bin/env bash
+# audit.sh - Marcus Brain Audit Script
+# Runs weekly via OpenClaw cron, outputs to 90_state/audit-YYYY-MM-DD.md
 
-set -e
+set -uo pipefail
 
-WORKSPACE_DIR="${1:-$(pwd)}"
-GOLDEN_DIR="$WORKSPACE_DIR/80_reference/golden"
-DRIFT_FOUND=0
+WORKSPACE="/Users/marcus/clawd"
+DATE=$(date +%Y-%m-%d)
+OUTPUT="$WORKSPACE/90_state/audit-$DATE.md"
+PASS=0
+WARN=0
+FAIL=0
 
-echo "🔍 Weekly Drift Audit"
-echo "═══════════════════════════════════════════════════════════════"
-echo "Workspace: $WORKSPACE_DIR"
-echo "Golden Record: $GOLDEN_DIR"
-echo "Date: $(date)"
+log_pass() { echo "✅ $1"; ((PASS++)); }
+log_warn() { echo "⚠️ $1"; ((WARN++)); }
+log_fail() { echo "🚨 $1"; ((FAIL++)); }
+
+{
+echo "# Marcus Brain Audit - $DATE"
+echo ""
+echo "Generated: $(date)"
+echo ""
+echo "---"
 echo ""
 
-# Check if golden directory exists
-if [ ! -d "$GOLDEN_DIR" ]; then
-    echo "❌ ERROR: Golden record directory not found!"
-    echo "   Run: ./scripts/init-golden.sh to establish baseline"
-    exit 1
-fi
-
-# Files to check
-FILES=("AGENTS.md" "CONFIG.md" "SECURITY.md" "TOOLS.md" "HEARTBEAT.md")
-
-echo "Checking golden files for drift..."
+# ══════════════════════════════════════════════════════════════════════════════
+echo "## 🚨 Security Checks"
 echo ""
 
-for file in "${FILES[@]}"; do
-    golden_file="$GOLDEN_DIR/$file"
-    current_file="$WORKSPACE_DIR/$file"
-    
-    # Check if golden file exists
-    if [ ! -f "$golden_file" ]; then
-        echo "❌ MISSING: $file not found in golden record"
-        DRIFT_FOUND=1
-        continue
-    fi
-    
-    # Check if current file exists
-    if [ ! -f "$current_file" ]; then
-        echo "❌ MISSING: $file not found in workspace root"
-        DRIFT_FOUND=1
-        continue
-    fi
-    
-    # Compare files
-    if diff -q "$golden_file" "$current_file" > /dev/null 2>&1; then
-        echo "✅ $file"
-    else
-        echo "⚠️  DRIFT: $file has changed"
-        echo "   Run: diff $GOLDEN_DIR/$file ./$file"
-        DRIFT_FOUND=1
-    fi
-done
-
-echo ""
-
-# Check file sizes (AGENTS.md and SECURITY.md shouldn't grow too large)
-echo "Checking file health..."
-echo ""
-
-if [ -f "$WORKSPACE_DIR/AGENTS.md" ]; then
-    lines=$(wc -l < "$WORKSPACE_DIR/AGENTS.md")
-    if [ $lines -gt 200 ]; then
-        echo "⚠️  AGENTS.md is $lines lines (recommend < 200)"
-        DRIFT_FOUND=1
-    else
-        echo "✅ AGENTS.md: $lines lines"
-    fi
-fi
-
-if [ -f "$WORKSPACE_DIR/SECURITY.md" ]; then
-    lines=$(wc -l < "$WORKSPACE_DIR/SECURITY.md")
-    if [ $lines -gt 100 ]; then
-        echo "⚠️  SECURITY.md is $lines lines (recommend < 100)"
-        DRIFT_FOUND=1
-    else
-        echo "✅ SECURITY.md: $lines lines"
-    fi
-fi
-
-# Check for QMD status
-echo ""
-echo "Checking QMD status..."
-echo ""
-
-if command -v qmd &> /dev/null; then
-    if qmd status &> /dev/null; then
-        index_age=$(stat -c %Y ~/.cache/qmd/index.sqlite 2>/dev/null || stat -f %m ~/.cache/qmd/index.sqlite 2>/dev/null)
-        current_time=$(date +%s)
-        age_days=$(( (current_time - index_age) / 86400 ))
-        
-        if [ $age_days -gt 7 ]; then
-            echo "⚠️  QMD index is $age_days days old (recommend updating weekly)"
-            echo "   Run: qmd update"
-            DRIFT_FOUND=1
-        else
-            echo "✅ QMD index: $age_days days old"
-        fi
-    else
-        echo "⚠️  QMD status check failed"
-        DRIFT_FOUND=1
-    fi
+# 1. LaunchAgent plist permissions
+PLIST_PERMS=$(stat -f "%Lp" ~/Library/LaunchAgents/ai.openclaw.gateway.plist 2>/dev/null || echo "missing")
+if [ "$PLIST_PERMS" = "600" ]; then
+  log_pass "Gateway plist permissions: 600 (owner only)"
+elif [ "$PLIST_PERMS" = "missing" ]; then
+  log_fail "Gateway plist not found"
 else
-    echo "⚠️  QMD not installed"
-    DRIFT_FOUND=1
+  log_fail "Gateway plist permissions: $PLIST_PERMS (should be 600)"
 fi
 
-# Check for uncommitted changes
-echo ""
-echo "Checking git status..."
-echo ""
-
-cd "$WORKSPACE_DIR"
-
-if [ -d ".git" ]; then
-    uncommitted=$(git status --porcelain 2>/dev/null | wc -l)
-    if [ $uncommitted -gt 0 ]; then
-        echo "⚠️  $uncommitted uncommitted changes"
-        echo "   Review and commit: git status"
-        DRIFT_FOUND=1
-    else
-        echo "✅ No uncommitted changes"
-    fi
-    
-    # Check last commit date
-    last_commit=$(git log -1 --format=%ct 2>/dev/null || echo "0")
-    current_time=$(date +%s)
-    days_since_commit=$(( (current_time - last_commit) / 86400 ))
-    
-    if [ $days_since_commit -gt 7 ]; then
-        echo "⚠️  Last commit was $days_since_commit days ago"
-    else
-        echo "✅ Last commit: $days_since_commit days ago"
-    fi
+# 2. Check for API keys in workspace markdown
+SECRETS_FOUND=$(grep -rE "sk-ant-|sk-proj-|ntn_[a-zA-Z0-9]" "$WORKSPACE"/*.md 2>/dev/null | grep -v "audit-" | head -3 || true)
+if [ -z "$SECRETS_FOUND" ]; then
+  log_pass "No API keys found in root markdown files"
 else
-    echo "⚠️  Not a git repository"
+  log_fail "API keys found in markdown files:"
+  echo "\`\`\`"
+  echo "$SECRETS_FOUND"
+  echo "\`\`\`"
 fi
 
-# Summary
-echo ""
-echo "═══════════════════════════════════════════════════════════════"
-
-if [ $DRIFT_FOUND -eq 0 ]; then
-    echo "🎉 Audit passed! No drift detected."
-    echo "═══════════════════════════════════════════════════════════════"
-    exit 0
+# 3. SECURITY.md alert channel
+ALERT_CHANNEL=$(grep -i "Alert Cort" "$WORKSPACE/SECURITY.md" | head -1 || true)
+if echo "$ALERT_CHANNEL" | grep -qi "telegram"; then
+  log_pass "SECURITY.md alert channel: Telegram"
+elif echo "$ALERT_CHANNEL" | grep -qi "imessage"; then
+  log_fail "SECURITY.md still references iMessage for alerts"
 else
-    echo "⚠️  Audit complete with warnings."
-    echo ""
-    echo "Action required:"
-    echo "1. Review drifted files"
-    echo "2. If intentional: update golden record"
-    echo "3. If accidental: restore from golden record"
-    echo "═══════════════════════════════════════════════════════════════"
-    exit 1
+  log_warn "SECURITY.md alert channel unclear"
 fi
+
+echo ""
+
+# ══════════════════════════════════════════════════════════════════════════════
+echo "## ⚠️ Consistency Checks"
+echo ""
+
+# 4. Model routing consistency
+AGENTS_MODEL=$(grep -A1 "primary" "$WORKSPACE/AGENTS.md" 2>/dev/null | grep -oE "Kimi|Sonnet|Haiku|kimi|sonnet|haiku" | head -1 || echo "unknown")
+CONFIG_MODEL=$(cat ~/.openclaw/openclaw.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('agents',{}).get('defaults',{}).get('model',{}).get('primary','unknown'))" 2>/dev/null || echo "unknown")
+if echo "$CONFIG_MODEL" | grep -qi "kimi" && echo "$AGENTS_MODEL" | grep -qi "kimi"; then
+  log_pass "Model routing consistent: Kimi in both AGENTS.md and config"
+elif echo "$CONFIG_MODEL" | grep -qi "sonnet" && echo "$AGENTS_MODEL" | grep -qi "sonnet"; then
+  log_pass "Model routing consistent: Sonnet in both AGENTS.md and config"
+else
+  log_warn "Model routing mismatch: AGENTS.md says '$AGENTS_MODEL', config says '$CONFIG_MODEL'"
+fi
+
+# 5. Golden record sync
+AGENTS_DIFF=$(diff -q "$WORKSPACE/AGENTS.md" "$WORKSPACE/80_reference/golden/AGENTS.md" 2>/dev/null || echo "differs")
+if [ -z "$AGENTS_DIFF" ]; then
+  log_pass "Golden record AGENTS.md in sync"
+else
+  log_warn "Golden record AGENTS.md differs from root"
+fi
+
+# 6. iMessage references in active files
+IMSG_REFS=$(grep -l "iMessage" "$WORKSPACE/AGENTS.md" "$WORKSPACE/CONFIG.md" "$WORKSPACE/SECURITY.md" 2>/dev/null | wc -l | tr -d ' ')
+if [ "$IMSG_REFS" = "0" ]; then
+  log_pass "No iMessage references in core config files"
+else
+  log_warn "iMessage still referenced in $IMSG_REFS core config file(s)"
+fi
+
+echo ""
+
+# ══════════════════════════════════════════════════════════════════════════════
+echo "## 📋 Freshness Checks"
+echo ""
+
+# 7. CUSTOMERS.md sync date
+CUSTOMERS_DATE=$(grep -i "Last Synced" "$WORKSPACE/CUSTOMERS.md" 2>/dev/null | grep -oE "[0-9]{4}-[0-9]{2}-[0-9]{2}" | head -1 || echo "unknown")
+if [ "$CUSTOMERS_DATE" != "unknown" ]; then
+  DAYS_AGO=$(( ($(date +%s) - $(date -j -f "%Y-%m-%d" "$CUSTOMERS_DATE" +%s 2>/dev/null || echo 0)) / 86400 ))
+  if [ "$DAYS_AGO" -lt 7 ]; then
+    log_pass "CUSTOMERS.md synced $DAYS_AGO days ago"
+  elif [ "$DAYS_AGO" -lt 30 ]; then
+    log_warn "CUSTOMERS.md synced $DAYS_AGO days ago (should be <7)"
+  else
+    log_fail "CUSTOMERS.md synced $DAYS_AGO days ago (very stale)"
+  fi
+else
+  log_warn "CUSTOMERS.md sync date not found"
+fi
+
+# 8. QMD freshness
+QMD_STATUS=$(~/.bun/bin/qmd status 2>/dev/null | grep "Updated:" | head -1 || echo "unknown")
+if echo "$QMD_STATUS" | grep -qE "[0-9]+m ago|[0-9]+h ago"; then
+  log_pass "QMD index: $QMD_STATUS"
+elif echo "$QMD_STATUS" | grep -qE "[0-9]+d ago"; then
+  log_warn "QMD index stale: $QMD_STATUS"
+else
+  log_warn "QMD status unclear: $QMD_STATUS"
+fi
+
+# 9. Heartbeat recency
+HB_LAST=$(cat "$WORKSPACE/90_state/heartbeat-state.json" 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin).get('last_run','unknown'))" 2>/dev/null || echo "unknown")
+if [ "$HB_LAST" != "unknown" ]; then
+  log_pass "Last heartbeat: $HB_LAST"
+else
+  log_warn "Heartbeat state not readable"
+fi
+
+echo ""
+
+# ══════════════════════════════════════════════════════════════════════════════
+echo "## 🔧 Operations Checks"
+echo ""
+
+# 10. Gateway status
+GW_STATUS=$(openclaw gateway status 2>/dev/null || echo "unknown")
+if echo "$GW_STATUS" | grep -qi "running (pid"; then
+  log_pass "Gateway: running"
+elif echo "$GW_STATUS" | grep -qi "loaded"; then
+  log_pass "Gateway: loaded"
+else
+  log_fail "Gateway: not running"
+fi
+
+# 11. Cron jobs
+CRON_OUTPUT=$(openclaw cron list 2>/dev/null || echo "")
+CRON_ERRORS=$(echo "$CRON_OUTPUT" | grep -c " error " 2>/dev/null || echo "0")
+CRON_TOTAL=$(echo "$CRON_OUTPUT" | grep -cE "^[0-9a-f]{8}-" 2>/dev/null || echo "0")
+CRON_ERRORS=${CRON_ERRORS:-0}
+CRON_TOTAL=${CRON_TOTAL:-0}
+if [ "$CRON_ERRORS" = "0" ] && [ "$CRON_TOTAL" -gt 0 ]; then
+  log_pass "Cron jobs: $CRON_TOTAL jobs, 0 errors"
+elif [ "$CRON_TOTAL" = "0" ]; then
+  log_warn "Cron jobs: none found"
+else
+  log_warn "Cron jobs: $CRON_ERRORS errors out of $CRON_TOTAL jobs"
+fi
+
+# 12. Memory index dirty
+MEM_OUTPUT=$(openclaw memory status 2>/dev/null || echo "")
+MEM_DIRTY=$(echo "$MEM_OUTPUT" | grep "Dirty:" | grep -c "yes" 2>/dev/null || echo "0")
+MEM_DIRTY=${MEM_DIRTY:-0}
+if [ "$MEM_DIRTY" = "0" ]; then
+  log_pass "Memory indexes: clean"
+else
+  log_warn "Memory indexes: $MEM_DIRTY dirty (pending embeddings)"
+fi
+
+echo ""
+
+# ══════════════════════════════════════════════════════════════════════════════
+echo "---"
+echo ""
+echo "## Summary"
+echo ""
+echo "| Status | Count |"
+echo "|--------|-------|"
+echo "| ✅ Pass | $PASS |"
+echo "| ⚠️ Warn | $WARN |"
+echo "| 🚨 Fail | $FAIL |"
+echo ""
+
+if [ "$FAIL" -gt 0 ]; then
+  echo "**Action Required:** $FAIL critical issue(s) need immediate attention."
+elif [ "$WARN" -gt 0 ]; then
+  echo "**Review Recommended:** $WARN warning(s) should be addressed."
+else
+  echo "**All Clear:** No issues detected."
+fi
+
+echo ""
+echo "---"
+echo "*Generated by /audit skill*"
+
+} > "$OUTPUT"
+
+echo "Audit complete: $OUTPUT"
+echo "Pass: $PASS | Warn: $WARN | Fail: $FAIL"
+
+# Exit with error if any failures
+[ "$FAIL" -eq 0 ]

@@ -1,15 +1,17 @@
 # Messaging Setup
 
-OpenClaw supports multiple messaging channels simultaneously. This document explains how to configure and use iMessage and Telegram together — each for different purposes.
+OpenClaw supports multiple messaging channels. **As of March 2026, we recommend Telegram-only.**
 
-## TL;DR: Use Both
+## TL;DR: Use Telegram Only
 
-| Channel | Use For | Why |
-|---------|---------|-----|
-| **iMessage** | Personal contacts, casual check-ins | Already on your phone, natural for friends/family |
-| **Telegram** | Operations, work, customer comms | Markdown support, topics, reliable group routing |
+| Channel | Status | Why |
+|---------|--------|-----|
+| **Telegram** | ✅ Recommended | Markdown, reliable routing, cross-platform |
+| **iMessage** | ⚠️ Disabled | Routing instability, wrong-contact bugs |
 
-They're not competitors. Run both.
+iMessage was disabled Feb 2026 after repeated incidents of messages going to wrong contacts. Telegram is more reliable for agent operations.
+
+> **If you must use iMessage:** See the legacy section below, but be aware of the routing issues.
 
 ---
 

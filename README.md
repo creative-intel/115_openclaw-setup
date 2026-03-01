@@ -1,7 +1,7 @@
 # OpenClaw Setup Guide
 
 > Battle-tested OpenClaw workspace configuration for AI agent operations.
-> Updated: February 2026 — reflects real production failures and fixes.
+> Updated: March 2026 — Kimi K2.5 primary, Telegram-only, weekly audits.
 
 ## What's Here
 
@@ -66,24 +66,26 @@ Then follow [`docs/SETUP_GUIDE.md`](docs/SETUP_GUIDE.md) for full configuration.
 | [`REAL_FAILURES.md`](docs/REAL_FAILURES.md) | 7 actual production failures + fixes |
 | [`DRIFT_PROTECTION.md`](docs/DRIFT_PROTECTION.md) | Preventing configuration drift |
 
-## Core Stack (as of Feb 2026)
+## Core Stack (as of March 2026)
 
 | Tool | Purpose | Cost |
 |------|---------|------|
 | OpenClaw | Agent runtime, gateway, cron | — |
 | QMD | Local semantic search | Free (local models) |
-| SuperMemory | Cross-session semantic memory | Paid API |
-| Claude Sonnet | Main agent (judgment, comms) | ~$3/MTok |
-| Claude Haiku | Heartbeats, cron jobs | ~$0.80/MTok |
-| Kimi K2.5 (lite) | Bulk execution tasks | Free tier |
-| Telegram | Primary ops channel | Free |
+| Kimi K2.5 | **Primary agent** (all tasks) | Free tier |
+| Claude Haiku | Fallback only | ~$0.80/MTok |
+| Telegram | **Primary messaging channel** | Free |
+
+> **Note:** iMessage was disabled Feb 2026 due to routing instability. Telegram is now the sole messaging channel.
 
 ## Key Lessons Learned
 
 See [`docs/REAL_FAILURES.md`](docs/REAL_FAILURES.md) for actual production failures and what fixed them.
 
 **The biggest ones:**
-- Run heartbeats on Haiku, not Sonnet — 4x cheaper, same quality for monitoring
+- **Kimi K2.5 works as primary** — switched from Sonnet, massive cost savings
+- **iMessage routing is unreliable** — disabled in favor of Telegram-only
 - Use `qmd-guard.sh` not raw `qmd update` — catches silent failures
 - Index your lite agent separately — it won't share your main index
 - `anthropic/claude-haiku-4-5` is the correct model name, not `claude-haiku-4`
+- **Weekly audits catch drift** — run `/audit` skill to detect config inconsistencies

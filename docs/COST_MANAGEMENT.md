@@ -2,22 +2,28 @@
 
 Running an AI agent 24/7 gets expensive fast. Here's how to keep costs reasonable.
 
-## The Problem
+## The Solution: Kimi K2.5 Primary
 
-A Claude Sonnet agent running heartbeats every 30 minutes loads a full context window each time. At ~48k tokens per heartbeat × 48 heartbeats/day × $3/MTok = ~$7/day just for heartbeats. Add active work sessions and you're at $50/day easily.
+As of March 2026, we run **Kimi K2.5 as the primary model** for everything. This dropped costs from ~$50/day to nearly zero (Kimi free tier).
 
-## Model Routing
-
-Use the right model for each job:
+## Model Routing (Current)
 
 | Task | Model | Why |
 |------|-------|-----|
-| Judgment, customer comms, writing | Sonnet (main) | Quality matters |
-| Heartbeat checks | Haiku | Monitoring doesn't need Sonnet |
-| Isolated cron jobs | Haiku | Same — mechanical tasks |
-| Bulk execution (files, scripts, APIs) | Kimi K2.5 (lite) | Fast, cheap, capable |
+| All tasks (primary) | Kimi K2.5 | Free, fast, capable enough |
+| Fallback only | Haiku | When Kimi is down |
+| Heartbeats | Kimi K2.5 | Same as primary |
 
-**The rule:** If a task involves more than ~20 file operations OR repetitive scripting, spawn it to the lite agent.
+**Previous approach (deprecated):** Sonnet for judgment, Haiku for heartbeats, Kimi for bulk. This was complex and expensive. Kimi handles everything adequately.
+
+## When to Use Sonnet
+
+Only if you need:
+- Complex multi-step reasoning
+- Sensitive customer communications requiring nuance
+- Tasks where Kimi consistently fails
+
+For most operations, Kimi is sufficient.
 
 ## Configure Heartbeat Model
 
