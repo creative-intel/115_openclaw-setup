@@ -49,8 +49,9 @@ Then follow [`docs/SETUP_GUIDE.md`](docs/SETUP_GUIDE.md) for full configuration.
 ### Configuration
 | Doc | Purpose |
 |-----|---------|
-| [`MESSAGING.md`](docs/MESSAGING.md) | iMessage + Telegram setup and routing |
+| [`MESSAGING.md`](docs/MESSAGING.md) | Telegram setup (iMessage deprecated) |
 | [`QMD_SETUP.md`](docs/QMD_SETUP.md) | Semantic search configuration and guard scripts |
+| [`MEMORY_SYSTEMS.md`](docs/MEMORY_SYSTEMS.md) | **QMD vs OpenClaw memory — critical to understand** |
 | [`MULTI_AGENT.md`](docs/MULTI_AGENT.md) | Lite agent setup and index management |
 
 ### Operations
